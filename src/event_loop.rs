@@ -42,8 +42,8 @@ pub struct EventLoop<T: 'static> {
 /// EventLoop<T>`), so functions that take this as a parameter can also take
 /// `&EventLoop`.
 pub struct EventLoopWindowTarget<T: 'static> {
-    pub(crate) p: platform_impl::EventLoopWindowTarget<T>,
-    pub(crate) _marker: ::std::marker::PhantomData<*mut ()>, // Not Send nor Sync
+    pub p: platform_impl::EventLoopWindowTarget<T>,
+    pub _marker: ::std::marker::PhantomData<*mut ()>, // Not Send nor Sync
 }
 
 impl<T> fmt::Debug for EventLoop<T> {

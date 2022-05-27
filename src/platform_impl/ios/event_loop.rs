@@ -48,8 +48,8 @@ pub enum EventProxy {
 }
 
 pub struct EventLoopWindowTarget<T: 'static> {
-    receiver: Receiver<T>,
-    sender_to_clone: Sender<T>,
+    pub receiver: Receiver<T>,
+    pub sender_to_clone: Sender<T>,
 }
 
 impl<T: 'static> EventLoopWindowTarget<T> {
@@ -67,8 +67,8 @@ impl<T: 'static> EventLoopWindowTarget<T> {
 }
 
 pub struct EventLoop<T: 'static> {
-    loop_override: Option<Box<dyn EventLoopOverride<T>>>,
-    window_target: RootEventLoopWindowTarget<T>,
+    pub loop_override: Option<Box<dyn EventLoopOverride<T>>>,
+    pub window_target: RootEventLoopWindowTarget<T>,
 }
 
 impl<T: 'static> EventLoop<T> {
