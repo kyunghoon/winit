@@ -15,6 +15,7 @@ use crate::{
     },
     monitor::MonitorHandle as RootMonitorHandle,
     platform::ios::Idiom,
+    EventLoopOverride
 };
 
 use crate::platform_impl::platform::{
@@ -66,64 +67,76 @@ impl<T: 'static> EventLoopWindowTarget<T> {
 }
 
 pub struct EventLoop<T: 'static> {
+    loop_override: Option<Box<dyn EventLoopOverride<T>>>,
     window_target: RootEventLoopWindowTarget<T>,
 }
 
 impl<T: 'static> EventLoop<T> {
-    pub fn new() -> EventLoop<T> {
-        static mut SINGLETON_INIT: bool = false;
-        unsafe {
-            assert_main_thread!("`EventLoop` can only be created on the main thread on iOS");
-            assert!(
-                !SINGLETON_INIT,
-                "Only one `EventLoop` is supported on iOS. \
-                 `EventLoopProxy` might be helpful"
-            );
-            SINGLETON_INIT = true;
-            view::create_delegate_class();
-        }
+    pub fn new(loop_override: Option<impl EventLoopOverride<T> + 'static>) -> EventLoop<T> {
+        if let Some(mut lo) = loop_override {
+            let mut event_loop = lo.create_event_loop();
+            event_loop.loop_override = Some(Box::new(lo));
+            event_loop
+        } else {
+            static mut SINGLETON_INIT: bool = false;
+            unsafe {
+                assert_main_thread!("`EventLoop` can only be created on the main thread on iOS");
+                assert!(
+                    !SINGLETON_INIT,
+                    "Only one `EventLoop` is supported on iOS. \
+                    `EventLoopProxy` might be helpful"
+                );
+                SINGLETON_INIT = true;
+                view::create_delegate_class();
+            }
 
-        let (sender_to_clone, receiver) = mpsc::channel();
+            let (sender_to_clone, receiver) = mpsc::channel();
 
-        // this line sets up the main run loop before `UIApplicationMain`
-        setup_control_flow_observers();
+            // this line sets up the main run loop before `UIApplicationMain`
+            setup_control_flow_observers();
 
-        EventLoop {
-            window_target: RootEventLoopWindowTarget {
-                p: EventLoopWindowTarget {
-                    receiver,
-                    sender_to_clone,
+            EventLoop {
+                loop_override: None,
+                window_target: RootEventLoopWindowTarget {
+                    p: EventLoopWindowTarget {
+                        receiver,
+                        sender_to_clone,
+                    },
+                    _marker: PhantomData,
                 },
-                _marker: PhantomData,
-            },
+            }
         }
     }
 
-    pub fn run<F>(self, event_handler: F) -> !
+    pub fn run<F>(mut self, event_handler: F) -> !
     where
         F: 'static + FnMut(Event<'_, T>, &RootEventLoopWindowTarget<T>, &mut ControlFlow),
     {
-        unsafe {
-            let application: *mut c_void = msg_send![class!(UIApplication), sharedApplication];
-            assert_eq!(
-                application,
-                ptr::null_mut(),
-                "\
-                 `EventLoop` cannot be `run` after a call to `UIApplicationMain` on iOS\n\
-                 Note: `EventLoop::run` calls `UIApplicationMain` on iOS"
-            );
-            app_state::will_launch(Box::new(EventLoopHandler {
-                f: event_handler,
-                event_loop: self.window_target,
-            }));
+        if let Some(mut lo) = self.loop_override.take() {
+            lo.run(&mut self);
+        } else {
+            unsafe {
+                let application: *mut c_void = msg_send![class!(UIApplication), sharedApplication];
+                assert_eq!(
+                    application,
+                    ptr::null_mut(),
+                    "\
+                    `EventLoop` cannot be `run` after a call to `UIApplicationMain` on iOS\n\
+                    Note: `EventLoop::run` calls `UIApplicationMain` on iOS"
+                );
+                app_state::will_launch(Box::new(EventLoopHandler {
+                    f: event_handler,
+                    event_loop: self.window_target,
+                }));
 
-            UIApplicationMain(
-                0,
-                ptr::null(),
-                nil,
-                NSStringRust::alloc(nil).init_str("AppDelegate"),
-            );
-            unreachable!()
+                UIApplicationMain(
+                    0,
+                    ptr::null(),
+                    nil,
+                    NSStringRust::alloc(nil).init_str("AppDelegate"),
+                );
+                unreachable!()
+            }
         }
     }
 

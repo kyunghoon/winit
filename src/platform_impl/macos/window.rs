@@ -157,6 +157,7 @@ fn create_window(
             }
         };
 
+        #[allow(clippy::if_same_then_else)]
         let mut masks = if !attrs.decorations && !screen.is_some() {
             // Resizable UnownedWindow without a titlebar or borders
             // if decorations is set to false, ignore pl_attrs

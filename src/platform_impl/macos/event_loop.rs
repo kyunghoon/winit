@@ -29,7 +29,7 @@ use crate::{
         monitor::{self, MonitorHandle},
         observer::*,
         util::IdRef,
-    },
+    }, EventLoopOverride,
 };
 
 #[derive(Default)]
@@ -115,7 +115,7 @@ pub struct EventLoop<T: 'static> {
 }
 
 impl<T> EventLoop<T> {
-    pub fn new() -> Self {
+    pub fn new(loop_override: Option<impl EventLoopOverride<T>>) -> Self {
         let delegate = unsafe {
             if !msg_send![class!(NSThread), isMainThread] {
                 panic!("On macOS, `EventLoop` must be created on the main thread!");

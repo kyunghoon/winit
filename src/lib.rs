@@ -158,3 +158,9 @@ mod platform_impl;
 pub mod window;
 
 pub mod platform;
+
+pub use platform_impl::EventLoop as PlatformEventLoop;
+pub trait EventLoopOverride<T> {
+    fn create_event_loop(&mut self) -> PlatformEventLoop<T>;
+    fn run(&mut self, event_loop: &mut PlatformEventLoop<T>) -> !;
+}

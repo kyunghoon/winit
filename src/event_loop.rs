@@ -13,6 +13,7 @@ use instant::Instant;
 use std::ops::Deref;
 use std::{error, fmt};
 
+use crate::EventLoopOverride;
 use crate::{event::Event, monitor::MonitorHandle, platform_impl};
 
 /// Provides a way to retrieve events from the system and from the windows that were registered to
@@ -116,8 +117,19 @@ impl EventLoop<()> {
     /// ## Platform-specific
     ///
     /// - **iOS:** Can only be called on the main thread.
-    pub fn new() -> EventLoop<()> {
-        EventLoop::<()>::with_user_event()
+    pub fn new(loop_override: Option<impl EventLoopOverride<()> + 'static>) -> EventLoop<()> {
+        EventLoop::<()>::with_user_event(loop_override)
+    }
+}
+
+impl<T> Default for EventLoop<T> {
+    fn default() -> Self {
+        struct NoOp;
+        impl<T: 'static> EventLoopOverride<T> for NoOp {
+            fn create_event_loop(&mut self) -> platform_impl::EventLoop<T> { panic!() }
+            fn run(&mut self, _: &mut platform_impl::EventLoop<T>) -> ! { panic!() }
+        }
+        EventLoop::<T>::with_user_event(Option::<NoOp>::None)
     }
 }
 
@@ -129,9 +141,9 @@ impl<T> EventLoop<T> {
     /// ## Platform-specific
     ///
     /// - **iOS:** Can only be called on the main thread.
-    pub fn with_user_event() -> EventLoop<T> {
+    pub fn with_user_event(loop_override: Option<impl EventLoopOverride<T> + 'static>) -> EventLoop<T> {
         EventLoop {
-            event_loop: platform_impl::EventLoop::new(),
+            event_loop: platform_impl::EventLoop::new(loop_override),
             _marker: ::std::marker::PhantomData,
         }
     }
