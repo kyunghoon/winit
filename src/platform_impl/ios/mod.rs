@@ -81,6 +81,7 @@ pub use self::{
     event_loop::{EventLoop, EventLoopProxy, EventLoopWindowTarget, EventLoopHandler},
     monitor::{MonitorHandle, VideoMode},
     window::{PlatformSpecificWindowBuilderAttributes, Window, WindowId},
+    app_state::AppState
 };
 
 pub(crate) use crate::icon::NoIcon as PlatformIcon;
