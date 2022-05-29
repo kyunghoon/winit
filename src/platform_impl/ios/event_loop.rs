@@ -316,7 +316,7 @@ pub trait EventHandler: Debug {
     fn handle_user_events(&mut self, control_flow: &mut ControlFlow);
 }
 
-struct EventLoopHandler<F, T: 'static> {
+pub struct EventLoopHandler<F, T: 'static> {
     f: F,
     event_loop: RootEventLoopWindowTarget<T>,
 }

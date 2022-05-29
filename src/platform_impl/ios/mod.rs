@@ -78,7 +78,7 @@ mod window;
 use std::fmt;
 
 pub use self::{
-    event_loop::{EventLoop, EventLoopProxy, EventLoopWindowTarget},
+    event_loop::{EventLoop, EventLoopProxy, EventLoopWindowTarget, EventLoopHandler},
     monitor::{MonitorHandle, VideoMode},
     window::{PlatformSpecificWindowBuilderAttributes, Window, WindowId},
 };
