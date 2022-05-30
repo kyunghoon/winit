@@ -113,7 +113,7 @@ impl<T: 'static> EventLoop<T> {
         F: 'static + FnMut(Event<'_, T>, &RootEventLoopWindowTarget<T>, &mut ControlFlow),
     {
         if let Some(mut lo) = self.loop_override.take() {
-            lo.run(&mut self);
+            lo.run(&mut self, event_handler);
         } else {
             unsafe {
                 let application: *mut c_void = msg_send![class!(UIApplication), sharedApplication];

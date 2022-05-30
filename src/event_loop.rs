@@ -127,7 +127,7 @@ impl<T> Default for EventLoop<T> {
         struct NoOp;
         impl<T: 'static> EventLoopOverride<T> for NoOp {
             fn create_event_loop(&mut self) -> platform_impl::EventLoop<T> { panic!() }
-            fn run(&mut self, _: &mut platform_impl::EventLoop<T>) -> ! { panic!() }
+            fn run(&mut self, _: &mut platform_impl::EventLoop<T>, _: impl FnMut(Event<'_, T>, &EventLoopWindowTarget<T>, &mut ControlFlow) + 'static) -> ! { panic!() }
         }
         EventLoop::<T>::with_user_event(Option::<NoOp>::None)
     }
