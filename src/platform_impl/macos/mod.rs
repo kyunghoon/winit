@@ -2,7 +2,7 @@
 
 mod app;
 mod app_delegate;
-mod app_state;
+pub mod app_state;
 mod event;
 mod event_loop;
 mod ffi;
@@ -21,7 +21,6 @@ pub use self::{
     event_loop::{EventLoop, EventLoopWindowTarget, Proxy as EventLoopProxy},
     monitor::{MonitorHandle, VideoMode},
     window::{Id as WindowId, PlatformSpecificWindowBuilderAttributes, UnownedWindow},
-    app_state::AppState
 };
 use crate::{
     error::OsError as RootOsError, event::DeviceId as RootDeviceId, window::WindowAttributes,
