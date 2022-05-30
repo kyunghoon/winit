@@ -168,7 +168,7 @@ pub use platform_impl::EventLoopWindowTarget as PlatformEventLoopWindowTarget;
 pub use platform_impl::EventLoopHandler as PlatformEventLoopHandler;
 pub trait EventLoopOverride<T> {
     fn create_event_loop(&mut self) -> PlatformEventLoop<T>;
-    fn run(&mut self, event_loop: &mut PlatformEventLoop<T>, event_handler: impl FnMut(Event<'_, T>, &EventLoopWindowTarget<T>, &mut ControlFlow) + 'static) -> !;
+    fn run(&mut self, event_loop: PlatformEventLoop<T>, event_handler: Box<dyn FnMut(Event<'_, T>, &EventLoopWindowTarget<T>, &mut ControlFlow) + 'static>) -> !;
 }
 
 #[cfg(target_os = "ios")]

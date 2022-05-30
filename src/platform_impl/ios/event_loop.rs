@@ -113,7 +113,7 @@ impl<T: 'static> EventLoop<T> {
         F: 'static + FnMut(Event<'_, T>, &RootEventLoopWindowTarget<T>, &mut ControlFlow),
     {
         if let Some(mut lo) = self.loop_override.take() {
-            lo.run(&mut self, event_handler);
+            lo.run(self, Box::new(event_handler));
         } else {
             unsafe {
                 let application: *mut c_void = msg_send![class!(UIApplication), sharedApplication];
@@ -317,8 +317,8 @@ pub trait EventHandler: Debug {
 }
 
 pub struct EventLoopHandler<F, T: 'static> {
-    f: F,
-    event_loop: RootEventLoopWindowTarget<T>,
+    pub f: F,
+    pub event_loop: RootEventLoopWindowTarget<T>,
 }
 
 impl<F, T: 'static> Debug for EventLoopHandler<F, T> {
